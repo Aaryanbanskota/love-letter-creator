@@ -5,7 +5,7 @@ A beautiful, simple, and customizable **Love Letter Generator** that lets you cr
 ---
 
 ## 🌐 View Live
-👉 [Click here to use the Love Letter Creator](https://your-live-site-link.com)  
+👉 [Click here to use the Love Letter Creator](https://aaryanbanskota.github.io/love-letter-creator/)  
 ✨ No signup required – just select a mood, hit generate, and share the love!
 
 ---
@@ -22,4 +22,4 @@ A beautiful, simple, and customizable **Love Letter Generator** that lets you cr
 ## 🚀 Getting Started
 
 ```bash
-git clone 
+git clone https://github.com/Aaryanbanskota/love-letter-creator
