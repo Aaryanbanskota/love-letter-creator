@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Letter Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        :root {
+            --primary: #ff6b8b;
+            --secondary: #ff8e9e;
+            --dark: #d23369;
+            --light: #fff5f7;
+            --accent: #ffd166;
+            --envelope-color: #e74c3c;
+            --envelope-flap: #c0392b;
+            --paper: #fff9e6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fff5f7 0%, #ffebee 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #333;
+        }
+        
+        /* Particle Background */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Landing Page */
+        .landing-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(206, 92, 127, 0.2);
+            max-width: 800px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .glass-card.hidden {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            color: #555;
+        }
+        
+        /* Mode Buttons */
+        .mode-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .mode-btn {
+            position: relative;
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mode-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            opacity: 1;
+        }
+        
+        .ai-btn::before {
+            background: linear-gradient(45deg, #6b8bff, #8e9eff);
+        }
+        
+        .manual-btn::before {
+            background: linear-gradient(45deg, #ff6b8b, #ff8e9e);
+        }
+        
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .mode-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .mode-btn span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Form Container */
+        .form-container {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .form-container.visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 139, 0.2);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        /* Submit Button */
+        .submit-btn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 15px rgba(255, 107, 139, 0.3);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 139, 0.4);
+        }
+        
+        /* Letter Preview Container */
+        .letter-container {
+            display: none;
+            max-width: 800px;
+            margin: 2rem auto;
+            position: relative;
+        }
+        
+        /* Envelope Animation - Enhanced */
+        .envelope-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            perspective: 1000px;
+        }
+        
+        .envelope {
+            position: relative;
+            width: 350px;
+            height: 220px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        
+        .envelope-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--envelope-color);
+            border-radius: 8px;
+            z-index: 1;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateZ(-10px);
+        }
+        
+        .envelope-flap {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--envelope-flap);
+            border-radius: 8px;
+            transform-origin: top center;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 3;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: rotateX(0deg);
+        }
+        
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+        }
+        
+        .envelope-sides {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--envelope-flap);
+            border-radius: 8px;
+            z-index: 2;
+            transform: translateZ(-10px);
+        }
+        
+        .envelope-paper {
+            position: absolute;
+            width: 95%;
+            height: 95%;
+            background: var(--paper);
+            top: 2.5%;
+            left: 2.5%;
+            border-radius: 4px;
+            z-index: 1;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .envelope-stamp {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 4;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Letter - Standard 8.5x11 inches */
+        .letter {
+            position: absolute;
+            width: 8.5in;
+            min-height: 11in;
+            background: var(--paper);
+            left: 50%;
+            transform: translateX(-50%) scale(0.8) translateY(100%);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.3s;
+            z-index: 0;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 1.5in;
+            display: none;
+        }
+        
+        .envelope.open + .letter {
+            transform: translateX(-50%) scale(0.8) translateY(0);
+            opacity: 1;
+            display: block;
+        }
+        
+        /* Letter Content */
+        .letter-content {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.5rem;
+            line-height: 2;
+            color: #333;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .letter-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .letter-content .signature {
+            font-weight: bold;
+            margin-top: auto;
+            text-align: right;
+            padding-top: 2rem;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .download-btn {
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .new-letter-btn {
+            background: linear-gradient(45deg, #2196F3, #42A5F5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        
+        .print-btn {
+            background: linear-gradient(45deg, #9C27B0, #AB47BC);
+            color: white;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+        }
+        
+        .reply-btn {
+            background: linear-gradient(45deg, #FF9800, #FFB74D);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Manual Editor */
+        .editor-container {
+            display: none;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        
+        #editor {
+            height: 500px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .mode-buttons {
+                flex-direction: column;
+            }
+            
+            .glass-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .letter {
+                width: 100%;
+                height: auto;
+                min-height: 11in;
+                padding: 1rem;
+                transform: translateX(-50%) scale(0.9) translateY(100%);
+            }
+            
+            .envelope.open + .letter {
+                transform: translateX(-50%) scale(0.9) translateY(0);
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .letter, .letter * {
+                visibility: visible;
+            }
+            .letter {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 1in;
+                box-shadow: none;
+                transform: none !important;
+            }
+        }
+        
+        /* Confetti Effect */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+        }
+        
+        /* Music Player */
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .music-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        /* Loading Animation */
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Theme Selector */
+        .theme-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        .theme-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-options {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .theme-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .theme-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .theme-option.active {
+            border-color: #333;
+        }
+        
+        /* Date Picker */
+        .date-picker {
+            position: relative;
+        }
+        
+        .date-picker input {
+            padding-right: 30px;
+        }
+        
+        .date-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Background -->
+    <div id="particles-js"></div>
+    
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+    
+    <!-- Loading Animation -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+        <p style="margin-top: 20px; font-weight: 600;">Creating your love letter...</p>
+    </div>
+    
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <button class="theme-btn" id="themeToggle">🎨</button>
+        <div class="theme-options" id="themeOptions">
+            <div class="theme-option active" style="background: #ff6b8b;" data-theme="default"></div>
+            <div class="theme-option" style="background: #6b8bff;" data-theme="blue"></div>
+            <div class="theme-option" style="background: #4CAF50;" data-theme="green"></div>
+            <div class="theme-option" style="background: #9C27B0;" data-theme="purple"></div>
+            <div class="theme-option" style="background: #FF9800;" data-theme="orange"></div>
+        </div>
+    </div>
+    
+    <!-- Music Player -->
+    <div class="music-player">
+        <button class="music-btn" id="musicToggle">🎵</button>
+        <audio id="bgMusic" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+    
+    <!-- Landing Page -->
+    <div class="landing-container" id="landingPage">
+        <div class="glass-card" id="landingCard">
+            <h1>Love Letter Generator</h1>
+            <p class="subtitle">Create the perfect romantic message for your special someone</p>
+            <div class="mode-buttons">
+                <button class="mode-btn ai-btn" id="aiModeBtn">
+                    <span>✨ AI Fast Mode</span>
+                </button>
+                <button class="mode-btn manual-btn" id="manualModeBtn">
+                    <span>🖋️ Manual Slow Mode</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Form -->
+    <div class="form-container" id="aiForm">
+        <h2>Tell Us About Your Love</h2>
+        <p>Answer these questions to generate a personalized love letter</p>
+        
+        <form id="loveLetterForm">
+            <div class="form-group">
+                <label for="yourName">Your Name</label>
+                <input type="text" id="yourName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="crushName">Your Loved One's Name</label>
+                <input type="text" id="crushName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="meetPlace">Where did you first meet?</label>
+                <input type="text" id="meetPlace" required>
+            </div>
+            
+            <div class="form-group date-picker">
+                <label for="meetDate">When did you first meet?</label>
+                <input type="date" id="meetDate" required>
+                <span class="date-icon">📅</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="firstImpression">What was your first impression of them?</label>
+                <textarea id="firstImpression" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="favoriteMemory">What's your favorite memory together?</label>
+                <textarea id="favoriteMemory" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="whatYouLove">What do you love most about them?</label>
+                <textarea id="whatYouLove" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="futureHope">What do you hope for your future together?</label>
+                <textarea id="futureHope" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="closing">How would you like to close your letter?</label>
+                <select id="closing">
+                    <option value="Forever yours">Forever yours</option>
+                    <option value="With all my love">With all my love</option>
+                    <option value="Yours always">Yours always</option>
+                    <option value="Love always">Love always</option>
+                    <option value="With love">With love</option>
+                    <option value="Eternally yours">Eternally yours</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="letterTheme">Letter Theme</label>
+                <select id="letterTheme">
+                    <option value="classic">Classic Love Letter</option>
+                    <option value="modern">Modern Romance</option>
+                    <option value="poetic">Poetic Expression</option>
+                    <option value="playful">Playful & Fun</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="submit-btn">Generate Love Letter</button>
+        </form>
+    </div>
+    
+    <!-- Letter Preview -->
+    <div class="letter-container" id="letterPreview">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Your Love Letter</h2>
+        
+        <div class="envelope-wrapper">
+            <div class="envelope" id="envelope">
+                <div class="envelope-back"></div>
+                <div class="envelope-sides"></div>
+                <div class="envelope-flap"></div>
+                <div class="envelope-paper"></div>
+                <div class="envelope-stamp">💌</div>
+            </div>
+            <div class="letter" id="letter">
+                <div class="letter-content" id="letterContent">
+                    <!-- Letter content will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="action-btn download-btn" id="downloadBtn">
+                <span>📥 Download PDF</span>
+            </button>
+            <button class="action-btn print-btn" id="printBtn">
+                <span>🖨️ Print Letter</span>
+            </button>
+            <button class="action-btn reply-btn" id="replyBtn">
+                <span>💌 Create Reply</span>
+            </button>
+            <button class="action-btn new-letter-btn" id="newLetterBtn">
+                <span>✏️ Create New Letter</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Manual Editor -->
+    <div class="editor-container" id="manualEditor">
+        <h2>Write Your Love Letter</h2>
+        <p>Express your feelings in your own words</p>
+        
+        <div id="editor"></div>
+        
+        <div class="action-buttons">
+            <button class="action-btn" id="previewLetterBtn">
+                <span>👀 Preview Letter</span>
+            </button>
+            <button class="action-btn download-btn" id="downloadManualBtn">
+                <span>📥 Download PDF</span>
+            </button>
+            <button class="action-btn print-btn" id="printManualBtn">
+                <span>🖨️ Print Letter</span>
+            </button>
+            <button class="action-btn reply-btn" id="replyManualBtn">
+                <span>💌 Create Reply</span>
+            </button>
+            <button class="action-btn new-letter-btn" id="backToHomeBtn">
+                <span>🏠 Back to Home</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // Initialize Particles.js
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 80,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#ff6b8b"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    }
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": false,
+                    "anim": {
+                        "enable": false,
+                        "speed": 1,
+                        "opacity_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                    "anim": {
+                        "enable": false,
+                        "speed": 40,
+                        "size_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#ff8e9e",
+                    "opacity": 0.4,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 2,
+                    "direction": "none",
+                    "random": false,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                    "attract": {
+                        "enable": false,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 1
+                        }
+                    },
+                    "bubble": {
+                        "distance": 400,
+                        "size": 40,
+                        "duration": 2,
+                        "opacity": 8,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 200,
+                        "duration": 0.4
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+
+        // Initialize Quill Editor
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Write your love letter here...',
+            bounds: '#editor'
+        });
+
+        // DOM Elements
+        const landingPage = document.getElementById('landingPage');
+        const landingCard = document.getElementById('landingCard');
+        const aiForm = document.getElementById('aiForm');
+        const letterPreview = document.getElementById('letterPreview');
+        const manualEditor = document.getElementById('manualEditor');
+        const loveLetterForm = document.getElementById('loveLetterForm');
+        const envelope = document.getElementById('envelope');
+        const letter = document.getElementById('letter');
+        const letterContent = document.getElementById('letterContent');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const newLetterBtn = document.getElementById('newLetterBtn');
+        const printBtn = document.getElementById('printBtn');
+        const replyBtn = document.getElementById('replyBtn');
+        const previewLetterBtn = document.getElementById('previewLetterBtn');
+        const downloadManualBtn = document.getElementById('downloadManualBtn');
+        const printManualBtn = document.getElementById('printManualBtn');
+        const replyManualBtn = document.getElementById('replyManualBtn');
+        const backToHomeBtn = document.getElementById('backToHomeBtn');
+        const aiModeBtn = document.getElementById('aiModeBtn');
+        const manualModeBtn = document.getElementById('manualModeBtn');
+        const confettiContainer = document.getElementById('confettiContainer');
+        const loader = document.getElementById('loader');
+        const musicToggle = document.getElementById('musicToggle');
+        const bgMusic = document.getElementById('bgMusic');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeOptions = document.getElementById('themeOptions');
+        const themeOptionElements = document.querySelectorAll('.theme-option');
+
+        // AI Mode Button Click
+        aiModeBtn.addEventListener('click', () => {
+            landingCard.classList.add('hidden');
+            setTimeout(() => {
+                landingPage.style.display = 'none';
+                aiForm.classList.add('visible');
+            }, 600);
+        });
+
+        // Manual Mode Button Click
+        manualModeBtn.addEventListener('click', () => {
+            landingCard.classList.add('hidden');
+            setTimeout(() => {
+                landingPage.style.display = 'none';
+                manualEditor.style.display = 'block';
+            }, 600);
+        });
+
+        // Form Submission (AI Mode)
+        loveLetterForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Show loading animation
+            loader.style.display = 'flex';
+            
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Get form values
+            const yourName = document.getElementById('yourName').value;
+            const crushName = document.getElementById('crushName').value;
+            const meetPlace = document.getElementById('meetPlace').value;
+            const meetDate = document.getElementById('meetDate').value;
+            const firstImpression = document.getElementById('firstImpression').value;
+            const favoriteMemory = document.getElementById('favoriteMemory').value;
+            const whatYouLove = document.getElementById('whatYouLove').value;
+            const futureHope = document.getElementById('futureHope').value;
+            const closing = document.getElementById('closing').value;
+            const letterTheme = document.getElementById('letterTheme').value;
+            
+            // Generate letter with theme-specific content
+            let letter = '';
+            
+            // Classic Love Letter
+            if (letterTheme === 'classic') {
+                letter = `
+                    <p>My Dearest ${crushName},</p>
+                    
+                    <p>As I sit down to write this letter, my heart overflows with emotions too deep for words. From the moment we first met at ${meetPlace} on ${new Date(meetDate).toLocaleDateString()}, I knew there was something extraordinary about you. My first impression was that you were ${firstImpression}, and that feeling has only grown stronger with each passing day.</p>
+                    
+                    <p>One memory that I hold especially dear is when ${favoriteMemory}. That moment, like so many others with you, is etched permanently in my heart. I often find myself smiling when I think about it, warmed by the joy you bring to my life.</p>
+                    
+                    <p>What I love most about you is ${whatYouLove}. These qualities make you the remarkable person you are, and I feel profoundly fortunate to have you in my life. You inspire me to be better in ways I never imagined possible.</p>
+                    
+                    <p>When I think of our future, I dream of ${futureHope}. Whatever challenges may come, I know that together we can face them all. My love for you grows deeper with each sunrise.</p>
+                    
+                    <p>${closing},</p>
+                    <p class="signature">${yourName}</p>
+                    
+                    <p style="font-size: 1rem; text-align: center; margin-top: 2rem; color: #888;">
+                        Created with 💖 using Love Letter Generator
+                    </p>
+                `;
+            }
+            // Modern Romance
+            else if (letterTheme === 'modern') {
+                letter = `
+                    <p>Hey ${crushName},</p>
+                    
+                    <p>I just wanted to take a moment to tell you how much you mean to me. Ever since we met at ${meetPlace} on ${new Date(meetDate).toLocaleDateString()}, I've been completely drawn to you. That first time we talked, I remember thinking "${firstImpression}" - and you've only proven that right every day since.</p>
+                    
+                    <p>One of my absolute favorite moments with you was when ${favoriteMemory}. It's memories like that that make me realize how lucky I am to have you in my life.</p>
+                    
+                    <p>The thing I love most about you? ${whatYouLove}. It's just one of the million reasons you're so special to me.</p>
+                    
+                    <p>I'm really excited about our future together. I can totally see us ${futureHope}. No matter what comes our way, I know we'll handle it together.</p>
+                    
+                    <p>${closing},</p>
+                    <p class="signature">${yourName}</p>
+                    
+                    <p style="font-size: 1rem; text-align: center; margin-top: 2rem; color: #888;">
+                        Created with 💖 using Love Letter Generator
+                    </p>
+                `;
+            }
+            // Poetic Expression
+            else if (letterTheme === 'poetic') {
+                letter = `
+                    <p style="text-align: center;">My Beloved ${crushName},</p>
+                    
+                    <p style="text-align: center;">Like stars drawn to the moon's gentle glow,</p>
+                    <p style="text-align: center;">My heart found yours at ${meetPlace}, I know.</p>
+                    <p style="text-align: center;">On ${new Date(meetDate).toLocaleDateString()} we met,</p>
+                    <p style="text-align: center;">A day my soul will never forget.</p>
+                    
+                    <p style="text-align: center;">${firstImpression} was my first thought,</p>
+                    <p style="text-align: center;">A treasure more precious than could be bought.</p>
+                    <p style="text-align: center;">When ${favoriteMemory}, my heart took flight,</p>
+                    <p style="text-align: center;">Bathed in your love's radiant light.</p>
+                    
+                    <p style="text-align: center;">${whatYouLove} - these gifts you share,</p>
+                    <p style="text-align: center;">Make every moment beyond compare.</p>
+                    <p style="text-align: center;">Together may we ${futureHope},</p>
+                    <p style="text-align: center;">Bound forever by love's sweet hope.</p>
+                    
+                    <p style="text-align: center;">${closing},</p>
+                    <p class="signature" style="text-align: center;">${yourName}</p>
+                    
+                    <p style="font-size: 1rem; text-align: center; margin-top: 2rem; color: #888;">
+                        Created with 💖 using Love Letter Generator
+                    </p>
+                `;
+            }
+            // Playful & Fun
+            else {
+                letter = `
+                    <p>Dear ${crushName},</p>
+                    
+                    <p>I just had to write you this letter because... well, you're awesome! Remember when we first met at ${meetPlace} on ${new Date(meetDate).toLocaleDateString()}? I thought "${firstImpression}" and BOY was I right!</p>
+                    
+                    <p>One of my favorite times with you was when ${favoriteMemory}. I still laugh/cry/smile (circle all that apply) when I think about it!</p>
+                    
+                    <p>Here's what I absolutely adore about you: ${whatYouLove}. And that's just the start of a very long list that would take approximately 47 pages to complete.</p>
+                    
+                    <p>I can't wait until we ${futureHope}. It's going to be AMAZING because everything is better with you!</p>
+                    
+                    <p>${closing},</p>
+                    <p class="signature">${yourName}</p>
+                    
+                    <p style="font-size: 1rem; text-align: center; margin-top: 2rem; color: #888;">
+                        Created with 💖 using Love Letter Generator
+                    </p>
+                    
+                    <p style="text-align: center; margin-top: 1rem;">P.S. Here's a heart for you: ❤️</p>
+                `;
+            }
+            
+            // Display letter
+            letterContent.innerHTML = letter;
+            aiForm.classList.remove('visible');
+            
+            // Hide loader and show letter
+            loader.style.display = 'none';
+            letterPreview.style.display = 'block';
+            
+            // Trigger confetti
+            createConfetti();
+            
+            // Save letter data for reply
+            localStorage.setItem('lastLetterData', JSON.stringify({
+                yourName: crushName,
+                crushName: yourName,
+                meetPlace,
+                meetDate,
+                firstImpression,
+                favoriteMemory,
+                whatYouLove,
+                futureHope,
+                closing
+            }));
+        });
+
+        // Envelope Click
+        envelope.addEventListener('click', () => {
+            envelope.classList.toggle('open');
+            
+            // Play paper sound when opening
+            if (envelope.classList.contains('open')) {
+                const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-paper-whoosh-1481.mp3');
+                audio.volume = 0.3;
+                audio.play();
+            }
+        });
+
+        // Download PDF (AI Mode)
+        downloadBtn.addEventListener('click', async () => {
+            loader.style.display = 'flex';
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'in',
+                format: [8.5, 11]
+            });
+            
+            // Get letter content
+            const content = document.getElementById('letterContent');
+            
+            // Add watermark
+            doc.setFontSize(12);
+            doc.setTextColor(200, 200, 200);
+            doc.text('Created with Love Letter Generator', 4.25, 10.5, { align: 'center' });
+            
+            // Convert to image
+            await html2canvas(content, {
+                scale: 2,
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 7.5;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const positionX = (8.5 - imgWidth) / 2;
+                const positionY = (11 - imgHeight) / 2;
+                
+                doc.addImage(imgData, 'PNG', positionX, positionY, imgWidth, imgHeight);
+                doc.save('love-letter.pdf');
+                
+                loader.style.display = 'none';
+                createConfetti();
+            });
+        });
+
+        // Print Letter (AI Mode)
+        printBtn.addEventListener('click', () => {
+            window.print();
+        });
+
+        // Create Reply (AI Mode)
+        replyBtn.addEventListener('click', () => {
+            const lastLetterData = JSON.parse(localStorage.getItem('lastLetterData'));
+            if (!lastLetterData) {
+                alert('No previous letter found to reply to!');
+                return;
+            }
+            
+            // Populate form with reply data
+            document.getElementById('yourName').value = lastLetterData.yourName;
+            document.getElementById('crushName').value = lastLetterData.crushName;
+            document.getElementById('meetPlace').value = lastLetterData.meetPlace;
+            document.getElementById('meetDate').value = lastLetterData.meetDate;
+            document.getElementById('firstImpression').value = `how you made me feel ${lastLetterData.firstImpression}`;
+            document.getElementById('favoriteMemory').value = lastLetterData.favoriteMemory;
+            document.getElementById('whatYouLove').value = lastLetterData.whatYouLove;
+            document.getElementById('futureHope').value = lastLetterData.futureHope;
+            document.getElementById('closing').value = lastLetterData.closing;
+            
+            // Switch to form
+            letterPreview.style.display = 'none';
+            aiForm.classList.add('visible');
+            envelope.classList.remove('open');
+            
+            // Scroll to form
+            aiForm.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // New Letter (AI Mode)
+        newLetterBtn.addEventListener('click', () => {
+            letterPreview.style.display = 'none';
+            loveLetterForm.reset();
+            aiForm.classList.add('visible');
+            envelope.classList.remove('open');
+        });
+
+        // Preview Letter (Manual Mode)
+        previewLetterBtn.addEventListener('click', () => {
+            const content = quill.root.innerHTML;
+            localStorage.setItem('manualLetter', content);
+            
+            manualEditor.style.display = 'none';
+            letterPreview.style.display = 'block';
+            
+            letterContent.innerHTML = content;
+            envelope.classList.remove('open');
+            
+            // Scroll to envelope
+            setTimeout(() => {
+                envelope.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        });
+
+        // Download PDF (Manual Mode)
+        downloadManualBtn.addEventListener('click', async () => {
+            loader.style.display = 'flex';
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'in',
+                format: [8.5, 11]
+            });
+            
+            // Create temporary div with editor content
+            const content = document.createElement('div');
+            content.innerHTML = quill.root.innerHTML;
+            content.style.width = '7.5in';
+            content.style.padding = '1in';
+            content.style.fontFamily = 'Dancing Script, cursive';
+            content.style.fontSize = '16px';
+            content.style.background = 'var(--paper)';
+            content.style.margin = '0 auto';
+            content.style.boxShadow = '0 0 10px rgba(0,0,0,0.1)';
+            
+            // Add watermark
+            const watermark = document.createElement('div');
+            watermark.style.position = 'absolute';
+            watermark.style.bottom = '20px';
+            watermark.style.width = '100%';
+            watermark.style.textAlign = 'center';
+            watermark.style.fontFamily = 'Montserrat, sans-serif';
+            watermark.style.fontSize = '12px';
+            watermark.style.color = 'rgba(0,0,0,0.2)';
+            watermark.textContent = 'Created with Love Letter Generator';
+            content.appendChild(watermark);
+            
+            document.body.appendChild(content);
+            
+            // Convert to image
+            await html2canvas(content, {
+                scale: 2,
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 7.5;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const positionX = (8.5 - imgWidth) / 2;
+                const positionY = (11 - imgHeight) / 2;
+                
+                doc.addImage(imgData, 'PNG', positionX, positionY, imgWidth, imgHeight);
+                doc.save('custom-love-letter.pdf');
+                
+                document.body.removeChild(content);
+                loader.style.display = 'none';
+                createConfetti();
+            });
+        });
+
+        // Print Letter (Manual Mode)
+        printManualBtn.addEventListener('click', () => {
+            window.print();
+        });
+
+        // Create Reply (Manual Mode)
+        replyManualBtn.addEventListener('click', () => {
+            const content = quill.root.innerHTML;
+            localStorage.setItem('lastManualLetter', content);
+            
+            // Clear editor and add reply template
+            quill.root.innerHTML = `
+                <p>Dear [Their Name],</p>
+                
+                <p>I was so happy to receive your letter! Reading your words made my heart skip a beat.</p>
+                
+                <p>[Respond to their message here]</p>
+                
+                <p>With all my love,</p>
+                <p>[Your Name]</p>
+            `;
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        });
+
+        // Back to Home (Manual Mode)
+        backToHomeBtn.addEventListener('click', () => {
+            manualEditor.style.display = 'none';
+            landingPage.style.display = 'flex';
+            setTimeout(() => {
+                landingCard.classList.remove('hidden');
+            }, 50);
+        });
+
+        // Music Toggle
+        musicToggle.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicToggle.textContent = '🔊';
+            } else {
+                bgMusic.pause();
+                musicToggle.textContent = '🔇';
+            }
+        });
+
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            themeOptions.style.display = themeOptions.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Theme Selection
+        themeOptionElements.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove active class from all options
+                themeOptionElements.forEach(opt => opt.classList.remove('active'));
+                
+                // Add active class to clicked option
+                option.classList.add('active');
+                
+                // Change theme
+                const theme = option.getAttribute('data-theme');
+                changeTheme(theme);
+                
+                // Hide options
+                themeOptions.style.display = 'none';
+            });
+        });
+
+        // Change Theme Function
+        function changeTheme(theme) {
+            const root = document.documentElement;
+            
+            switch(theme) {
+                case 'blue':
+                    root.style.setProperty('--primary', '#6b8bff');
+                    root.style.setProperty('--secondary', '#8e9eff');
+                    root.style.setProperty('--dark', '#3a56b4');
+                    root.style.setProperty('--envelope-color', '#4a69bd');
+                    root.style.setProperty('--envelope-flap', '#3c56a8');
+                    break;
+                case 'green':
+                    root.style.setProperty('--primary', '#4CAF50');
+                    root.style.setProperty('--secondary', '#66BB6A');
+                    root.style.setProperty('--dark', '#2E7D32');
+                    root.style.setProperty('--envelope-color', '#43A047');
+                    root.style.setProperty('--envelope-flap', '#2E7D32');
+                    break;
+                case 'purple':
+                    root.style.setProperty('--primary', '#9C27B0');
+                    root.style.setProperty('--secondary', '#AB47BC');
+                    root.style.setProperty('--dark', '#6A1B9A');
+                    root.style.setProperty('--envelope-color', '#8E24AA');
+                    root.style.setProperty('--envelope-flap', '#6A1B9A');
+                    break;
+                case 'orange':
+                    root.style.setProperty('--primary', '#FF9800');
+                    root.style.setProperty('--secondary', '#FFB74D');
+                    root.style.setProperty('--dark', '#E65100');
+                    root.style.setProperty('--envelope-color', '#FB8C00');
+                    root.style.setProperty('--envelope-flap', '#E65100');
+                    break;
+                default: // default/red
+                    root.style.setProperty('--primary', '#ff6b8b');
+                    root.style.setProperty('--secondary', '#ff8e9e');
+                    root.style.setProperty('--dark', '#d23369');
+                    root.style.setProperty('--envelope-color', '#e74c3c');
+                    root.style.setProperty('--envelope-flap', '#c0392b');
+            }
+            
+            // Update particles color
+            particlesJS("particles-js", {
+                "particles": {
+                    "color": {
+                        "value": getComputedStyle(root).getPropertyValue('--primary').trim()
+                    },
+                    "line_linked": {
+                        "color": getComputedStyle(root).getPropertyValue('--secondary').trim()
+                    }
+                }
+            });
+        }
+
+        // Confetti Effect
+        function createConfetti() {
+            confettiContainer.innerHTML = '';
+            confettiContainer.style.display = 'block';
+            
+            const colors = ['#ff6b8b', '#ff8e9e', '#ffd166', '#4CAF50', '#2196F3', '#9C27B0'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                
+                const animationDuration = Math.random() * 3 + 2;
+                confetti.style.animation = `fall ${animationDuration}s linear forwards`;
+                
+                confettiContainer.appendChild(confetti);
+                
+                // Add animation
+                const keyframes = `
+                    @keyframes fall {
+                        0% {
+                            top: -10px;
+                            opacity: 1;
+                            transform: rotate(0deg) translateX(0);
+                        }
+                        100% {
+                            top: 100vh;
+                            opacity: 0;
+                            transform: rotate(360deg) translateX(${Math.random() * 200 - 100}px);
+                        }
+                    }
+                `;
+                
+                const style = document.createElement('style');
+                style.innerHTML = keyframes;
+                document.head.appendChild(style);
+            }
+            
+            setTimeout(() => {
+                confettiContainer.style.display = 'none';
+            }, 3000);
+        }
+
+        // Add animation to envelope on first view
+        setTimeout(() => {
+            envelope.style.animation = 'float 3s ease-in-out infinite alternate';
+            
+            const keyframes = `
+                @keyframes float {
+                    0% { transform: translateY(0); }
+                    100% { transform: translateY(-10px); }
+                }
+            `;
+            
+            const style = document.createElement('style');
+            style.innerHTML = keyframes;
+            document.head.appendChild(style);
+        }, 1000);
+    </script>
+</body>
+</html>
