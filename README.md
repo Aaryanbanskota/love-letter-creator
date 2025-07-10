@@ -1,6 +1,7 @@
 # 💌 Love Letter Creator
 
 A beautiful, simple, and customizable **Love Letter Generator** that lets you create romantic, cheesy, or poetic love letters in seconds. Whether you're charming a crush or melting your partner's heart — this tool helps you express love effortlessly 💖.
+# IF YOU SEE NOTHING SCROLL DOWN  #
 
 ---
 
@@ -14,7 +15,6 @@ A beautiful, simple, and customizable **Love Letter Generator** that lets you cr
 - 📝 Randomly generated romantic messages
 - 🎨 Customizable names and styles
 - 📤 Share-ready format (copy or download)
-- 🌙 Light & Dark Mode (optional)
 - 💻 Fully responsive and mobile-friendly
 
 ---
